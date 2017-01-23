@@ -56,9 +56,124 @@ getUser();
 **[⬆ венутся](#Оглавление)**
 
 ### Используйте именованные значения
-
 Мы будем читать код чаще, чем мы когда-нибудь напишем. Важно писать читаемый код, который легко искать. Делайте ваши имена для поиска. Такие инструменты, как 
 [buddy.js](https://github.com/danielstjules/buddy.js)
 и 
 [ESLint](https://github.com/eslint/eslint/blob/660e0918933e6e7fede26bc675a0763a6b357c94/docs/rules/no-magic-numbers.md)
 могут помочь идентифицировать неназванные константы.
+
+**Плохо:**
+```javascript
+// What the heck is 86400000 for?
+setTimeout(blastOff, 86400000);
+
+```
+
+**Хорошо:**
+```javascript
+// Объявляйте их как глобальные переменные.
+const MILLISECONDS_IN_A_DAY = 86400000;
+
+setTimeout(blastOff, MILLISECONDS_IN_A_DAY);
+
+```
+**[⬆ венутся](#Оглавление)**
+
+### Используйте объясняющие переменные
+
+**Плохо:**
+```javascript
+const address = 'One Infinite Loop, Cupertino 95014';
+const cityZipCodeRegex = /^[^,\\]+[,\\\s]+(.+?)\s*(\d{5})?$/;
+saveCityZipCode(address.match(cityZipCodeRegex)[1], address.match(cityZipCodeRegex)[2]);
+```
+
+**Хорошо:**
+```javascript
+const address = 'One Infinite Loop, Cupertino 95014';
+const cityZipCodeRegex = /^[^,\\]+[,\\\s]+(.+?)\s*(\d{5})?$/;
+const [, city, zipCode] = address.match(cityZipCodeRegex) || [];
+saveCityZipCode(city, zipCode);
+```
+**[⬆ венутся](#Оглавление)**
+
+### Используйте очеловеченные названия
+Явное лучше, чем неявное.
+
+**Плохо:**
+```javascript
+const locations = ['Austin', 'New York', 'San Francisco'];
+locations.forEach((l) => {
+  doStuff();
+  doSomeOtherStuff();
+  // ...
+  // ...
+  // ...
+  // Что значит `l`?
+  dispatch(l);
+});
+```
+
+**Хорошо:**
+```javascript
+const locations = ['Austin', 'New York', 'San Francisco'];
+locations.forEach((location) => {
+  doStuff();
+  doSomeOtherStuff();
+  // ...
+  // ...
+  // ...
+  dispatch(location);
+});
+```
+**[⬆ венутся](#Оглавление)**
+
+### Не добавляйте ненужный контекст
+Если ваше имя класса / объекта говорит вам что это, не повторяйте тоже при именовании его свойств и методов.
+
+**Хорошо:**
+```javascript
+const Car = {
+  carMake: 'Honda',
+  carModel: 'Accord',
+  carColor: 'Blue'
+};
+
+function paintCar(car) {
+  car.carColor = 'Red';
+}
+```
+
+**Плохо:**
+```javascript
+const Car = {
+  make: 'Honda',
+  model: 'Accord',
+  color: 'Blue'
+};
+
+function paintCar(car) {
+  car.color = 'Red';
+}
+```
+**[⬆ венутся](#Оглавление)**
+
+### Используйте условия по умолчанию вместо коротких замыканий или условных выражений
+
+**Плохо:**
+```javascript
+function createMicrobrewery(name) {
+  const breweryName = name || 'Hipster Brew Co.';
+  // ...
+}
+
+```
+
+**Хорошо:**
+```javascript
+function createMicrobrewery(breweryName = 'Hipster Brew Co.') {
+  // ...
+}
+
+```
+**[⬆ венутся](#Оглавление)**
