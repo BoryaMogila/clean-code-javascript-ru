@@ -177,3 +177,7 @@ function createMicrobrewery(breweryName = 'Hipster Brew Co.') {
 
 ```
 **[⬆ венутся](#Оглавление)**
+
+## Функции
+
+### Аргументы функции (идеально 2 или менее)
