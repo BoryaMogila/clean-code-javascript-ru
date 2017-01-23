@@ -39,3 +39,26 @@ const yyyymmdstr = moment().format('YYYY/MM/DD');
 const currentDate = moment().format('YYYY/MM/DD');
 ```
 **[⬆ венутся](#Оглавление)**
+
+### Используйте один и тот же метод для того же типа переменной
+
+**Плохо:**
+```javascript
+getUserInfo();
+getClientData();
+getCustomerRecord();
+```
+
+**Хрошо:**
+```javascript
+getUser();
+```
+**[⬆ венутся](#Оглавление)**
+
+### Используйте именованные значения
+
+Мы будем читать код чаще, чем мы когда-нибудь напишем. Важно писать читаемый код, который легко искать. Делайте ваши имена для поиска. Такие инструменты, как 
+[buddy.js](https://github.com/danielstjules/buddy.js)
+и 
+[ESLint](https://github.com/eslint/eslint/blob/660e0918933e6e7fede26bc675a0763a6b357c94/docs/rules/no-magic-numbers.md)
+могут помочь идентифицировать неназванные константы.
