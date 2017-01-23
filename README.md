@@ -477,7 +477,7 @@ function createTempFile(name) {
 ```
 **[⬆ венутся](#Оглавление)**
 
-### Избегайте побочных эффектов
+### Избегайте побочных эффектов (Часть 1)
 Функция производит побочный эффект, если она совершает какое-либо действие помимо получения значения и возврата другого значения или значений. Побочный эффект может быть записью в файл, изменением каких-то глобальных переменных или случайным переводом всех ваших денег неизвестным лицам. 
 
 Впрочем, побочные эффекты в программе необходимы. Пусть, как и в предыдущем примере, вам требуется запись в файл. Опишите то, что вы хотите сделать, строго в одном месте. 
@@ -518,4 +518,300 @@ console.log(newName); // ['Ryan', 'McDermott'];
 ```
 **[⬆ венутся](#Оглавление)**
 
+### Избегайте побочных эффектов (Часть 2)
+В JavaScript примитивы передаются по значению, а объекты и массивы передаются по
+ссылке. В случае объектов и массивов, если наша функция вносит изменения
+в корзину (массив), например, путем добавления элемента в массив,
+то любая другая функция, которая использует эту корзину (массив) будет зависеть от этого
+добавления. Это может быть и хорошо и плохо в разных случаях. Давайте представим себе плохую ситуация:
+
+Пользователь нажимает на кнопку "Покупка", которая вызывает функцию `purchase`, что отправляет данные из корзины (массив) на сервер. В случае плохого подключения к сети `функция purchase` должена отправить повторный запрос. Теперь, что, если в то же время пользователь случайно нажимает кнопку "Добавить в корзину", но пока не хочет покупать товар?
+Если это произойдет, и начинается запрос сети, то функция `purchase`
+пошлет случайно добавленный элемент, поскольку он имеет ссылку на предыдущую корзину (массив), модифицированую функцией `addItemToCart`. Отличное решение было бы для `addItemToCart` всегда клонировать корзину, отредактировать и вернуть клон. Это гарантирует, что никакие другие функции, которые зависят от корзины не будут зависеть от каких-либо изменений.
+
+Два предостережения по-поводу такого подхода:
+1. Возможны случаи, когда вы на самом деле хотите изменить объект по ссылке, но такие случаи крайне редки. Большинство функций могут быть объявлены без сайд эффектов!
+2. Клонирование больших объектов может быть очень нагрузочным и влиять на производительность. К счастью, это не является большой проблемой на практике, потому что есть [отличные библиотеки](https://facebook.github.io/immutable-js/), которые позволяют клонировать объекты с меньшей нагрузкой на память в отличии от клонирования вручную.
+
+**Плохо:**
+```javascript
+const addItemToCart = (cart, item) => {
+  cart.push({ item, date: Date.now() });
+};
+```
+
+**Хороше:**
+```javascript
+const addItemToCart = (cart, item) => {
+  return [...cart, { item, date : Date.now() }];
+};
+```
+**[⬆ венутся](#Оглавление)**
+
 ### Не переопределяйте глобальные функции
+Загрязнение глобальных переменных — плохая практика в JavaScript, так как может породить конфликты с другой библиотекой, и пользователь вашего API не увидит ошибок, пока не получит исключение в продакшене. Давайте рассмотрим пример: что делать, если вы хотите расширить стандартный функционал Array из JavaScript, добавив метод diff, который бы вычислял различие между двумя массивами? Вы должны были бы записать новую функцию в Array.prototype, но тогда она может войти в конфликт с другой библиотекой, которая пыталась сделать то же самое. А если другая библиотека использовала метод diff, чтобы найти разницу между первым и последним элементами массива? Именно поэтому гораздо лучше использовать классы ES2015/ES6 и просто унаследовать нашу реализацию от класса Array.
+
+**Плохо:**
+```javascript
+Array.prototype.diff = function diff(comparisonArray) {
+  const hash = new Set(comparisonArray);
+  return this.filter(elem => !hash.has(elem));
+};
+```
+
+**Хорошо:**
+```javascript
+class SuperArray extends Array {
+  diff(comparisonArray) {
+    const hash = new Set(comparisonArray);
+    return this.filter(elem => !hash.has(elem));
+  }
+}
+```
+**[⬆ венутся](#Оглавление)**
+
+### Отдавайте предпочтение фунциональному программированию над императивным
+JavaScript не настолько функциональный язык, как Haskell, но определенной доли функциональности он не лишен. Функциональные языки чище и их проще тестировать. Применяйте функциональный стиль программирования при возможности.
+
+**Плохо:**
+```javascript
+const programmerOutput = [
+  {
+    name: 'Uncle Bobby',
+    linesOfCode: 500
+  }, {
+    name: 'Suzie Q',
+    linesOfCode: 1500
+  }, {
+    name: 'Jimmy Gosling',
+    linesOfCode: 150
+  }, {
+    name: 'Gracie Hopper',
+    linesOfCode: 1000
+  }
+];
+
+let totalOutput = 0;
+
+for (let i = 0; i < programmerOutput.length; i++) {
+  totalOutput += programmerOutput[i].linesOfCode;
+}
+```
+
+**Хорошо:**
+```javascript
+const programmerOutput = [
+  {
+    name: 'Uncle Bobby',
+    linesOfCode: 500
+  }, {
+    name: 'Suzie Q',
+    linesOfCode: 1500
+  }, {
+    name: 'Jimmy Gosling',
+    linesOfCode: 150
+  }, {
+    name: 'Gracie Hopper',
+    linesOfCode: 1000
+  }
+];
+
+const INITIAL_VALUE = 0;
+
+const totalOutput = programmerOutput
+  .map((programmer) => programmer.linesOfCode)
+  .reduce((acc, linesOfCode) => acc + linesOfCode, INITIAL_VALUE);
+```
+**[⬆ венутся](#Оглавление)**
+
+### Инкапсулируйте условия
+
+**Плохо:**
+```javascript
+if (fsm.state === 'fetching' && isEmpty(listNode)) {
+  // ...
+}
+```
+
+**Хорошо:**
+```javascript
+function shouldShowSpinner(fsm, listNode) {
+  return fsm.state === 'fetching' && isEmpty(listNode);
+}
+
+if (shouldShowSpinner(fsmInstance, listNodeInstance)) {
+  // ...
+}
+```
+**[⬆ венутся](#Оглавление)**
+
+### Избегайте негативных условий
+
+**Плохо:**
+```javascript
+function isDOMNodeNotPresent(node) {
+  // ...
+}
+
+if (!isDOMNodeNotPresent(node)) {
+  // ...
+}
+```
+
+**Хорошо:**
+```javascript
+function isDOMNodePresent(node) {
+  // ...
+}
+
+if (isDOMNodePresent(node)) {
+  // ...
+}
+```
+**[⬆ венутся](#Оглавление)**
+
+### Избегайте условных конструкций
+Такая задача кажется невозможной. Услышав подобное, большинство людей говорят: "Как я должен делать что-либо без выражения if?". Ответ заключается в том, что во многих случаях для достижения тех же целей можно использовать полиморфизм. Второй вопрос, как правило, звучит так: "Хорошо, замечательно, но почему я должен их избегать?". Ответ — предыдущая концепция чистого кода, которую мы узнали: функция должна выполнять только одну задачу. Если у вас есть классы и функции, содержащие конструкцию 'if', вы словно говорите своему пользователю, что ваша функция выполняет больше одной задачи. Помните: одна функция — одна задача.
+
+**Плохо:**
+```javascript
+class Airplane {
+  // ...
+  getCruisingAltitude() {
+    switch (this.type) {
+      case '777':
+        return this.getMaxAltitude() - this.getPassengerCount();
+      case 'Air Force One':
+        return this.getMaxAltitude();
+      case 'Cessna':
+        return this.getMaxAltitude() - this.getFuelExpenditure();
+    }
+  }
+}
+```
+
+**Хорошо:**
+```javascript
+class Airplane {
+  // ...
+}
+
+class Boeing777 extends Airplane {
+  // ...
+  getCruisingAltitude() {
+    return this.getMaxAltitude() - this.getPassengerCount();
+  }
+}
+
+class AirForceOne extends Airplane {
+  // ...
+  getCruisingAltitude() {
+    return this.getMaxAltitude();
+  }
+}
+
+class Cessna extends Airplane {
+  // ...
+  getCruisingAltitude() {
+    return this.getMaxAltitude() - this.getFuelExpenditure();
+  }
+}
+```
+**[⬆ венутся](#Оглавление)**
+
+### Избегайте проверки типов (часть 1)
+JavaScript является нетипизированным языком, а это значит, что ваши функции могут принимать аргументы любого типа. Порой вы обжигались этой свободой, что побуждало вас производить проверку типов в ваших функциях. Есть множество способов ее избежать. В первую очередь стоит подумать над согласованным API.
+
+**Плохо:**
+```javascript
+function travelToTexas(vehicle) {
+  if (vehicle instanceof Bicycle) {
+    vehicle.peddle(this.currentLocation, new Location('texas'));
+  } else if (vehicle instanceof Car) {
+    vehicle.drive(this.currentLocation, new Location('texas'));
+  }
+}
+```
+
+**Хорошо:**
+```javascript
+function travelToTexas(vehicle) {
+  vehicle.move(this.currentLocation, new Location('texas'));
+}
+```
+**[⬆ венутся](#Оглавление)**
+
+### Избегайте проверки типов (часть 2)
+Если вы работаете с базовыми примитивами, такими как строки, целые числа и массивы, и не можете использовать полиморфизм, хотя все еще чувствуете необходимость в проверках типа, вам стоит рассмотреть возможность применения TypeScript. Это отличная альтернатива обычному JavaScript, предоставляющая возможность статической типизации поверх стандартного синтаксиса JavaScript. Проблема с ручной проверкой типов в обычном JavaScript в том, что иллюзия безопасности, которую она создает, никак не компенсируется потерей читабельности из-за многословности кода. Держите ваш код в чистоте, пишите хорошие тесты и делайте эффективные ревизии кода. Или делайте все то же самое, но с помощью TypeScript (который, как я уже сказал, является прекрасной альтернативой!). 
+
+**Плохо:**
+```javascript
+function combine(val1, val2) {
+  if (typeof val1 === 'number' && typeof val2 === 'number' ||
+      typeof val1 === 'string' && typeof val2 === 'string') {
+    return val1 + val2;
+  }
+
+  throw new Error('Must be of type String or Number');
+}
+```
+
+**Хорошо:**
+```javascript
+function combine(val1, val2) {
+  return val1 + val2;
+}
+```
+**[⬆ венутся](#Оглавление)**
+
+### Не оптимизируйте сверх меры
+Современные браузеры производят множество оптимизаций под капотом во время исполнения кода. Оптимизируя код вручную, вы, зачастую, просто тратите свое время. <a href="https://github.com/petkaantonov/bluebird/wiki/Optimization-killers">Есть прекрасные ресурсы</a> с описанием ситуаций, когда оптимизация действительно хромает. Поглядывайте на них в свободное время, пока эти проблемы не будут исправлены, если вообще будут, конечно.
+
+**Плохо:**
+```javascript
+
+// On old browsers, each iteration with uncached `list.length` would be costly
+// because of `list.length` recomputation. In modern browsers, this is optimized.
+for (let i = 0, len = list.length; i < len; i++) {
+  // ...
+}
+```
+
+**Хорошо:**
+```javascript
+for (let i = 0; i < list.length; i++) {
+  // ...
+}
+```
+**[⬆ венутся](#Оглавление)**
+
+### Удаляйте мертвый код
+Мертвый код так же плох, как повторяющийся код. Нет никаких причин, чтобы держать его в репозитории. Если код не вызывается, избавьтесь от него! 
+
+Он по-прежнему будет в системе контроля версий, если когда-нибудь он все-таки вам понадобится.
+
+**Плохо:**
+```javascript
+function oldRequestModule(url) {
+  // ...
+}
+
+function newRequestModule(url) {
+  // ...
+}
+
+const req = newRequestModule;
+inventoryTracker('apples', req, 'www.inventory-awesome.io');
+
+```
+
+**Хорошо:**
+```javascript
+function newRequestModule(url) {
+  // ...
+}
+
+const req = newRequestModule;
+inventoryTracker('apples', req, 'www.inventory-awesome.io');
+```
+**[⬆ венутся](#Оглавление)**
