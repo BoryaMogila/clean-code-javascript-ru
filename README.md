@@ -299,7 +299,7 @@ function parseBetterJSAlternative(code) {
 }
 ```
 
-**Good:**
+**Хорошо:**
 ```javascript
 function tokenize(code) {
   const REGEXES = [
