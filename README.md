@@ -131,7 +131,7 @@ locations.forEach((location) => {
 ### Не добавляйте ненужный контекст
 Если ваше имя класса / объекта говорит вам что это, не повторяйте тоже при именовании его свойств и методов.
 
-**Хорошо:**
+**Плохо:**
 ```javascript
 const Car = {
   carMake: 'Honda',
@@ -144,7 +144,7 @@ function paintCar(car) {
 }
 ```
 
-**Плохо:**
+**Хорошо:**
 ```javascript
 const Car = {
   make: 'Honda',
